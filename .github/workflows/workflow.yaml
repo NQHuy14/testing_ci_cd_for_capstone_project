@@ -110,14 +110,3 @@ jobs:
         run: flutter --version | grep '3.24.3'
         shell: bash
 
-test_print_output:
-  runs-on: windows-latest
-
-  # These calls to setup.sh specify the -t flag, which enables test mode.
-  # Test mode uses hardcoded Flutter release manifests from test/ directory.
-
-  steps:
-    - name: Clone repository
-      uses: actions/checkout@v4
-    - run: ./setup.sh -t -p -f pubspec.yaml   | grep '3.3.10'
-      shell: bash
