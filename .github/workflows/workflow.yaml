@@ -13,7 +13,43 @@ on:
       - .github/workflows/workflow.yaml
 
 jobs:
-  # Job 1: Setup with caching options
+  # Job 1: Android Lint Check
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.16.0
+        with:
+          channel: stable
+
+      - name: Run Flutter Analyze
+        run: flutter analyze
+
+      - name: Upload Lint Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: lint-report
+          path: analysis_options.yaml
+  unit-test:
+    needs: [ lint ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: unit_test_report
+          path: app/build/reports/tests/testDebugUnitTest/
+
+  # Job 2: Setup with caching options
   setup_with_caching:
     runs-on: ubuntu-latest
     steps:
@@ -30,20 +66,20 @@ jobs:
           pub-cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
       - run: flutter --version
 
-  # Job 2: Setup with flutter-version file specified
+  # Job 3: Setup with flutter-version file specified
   setup_with_version_file:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
-      - name:  Flutter action
+      - name: Set up Flutter with version from pubspec.yaml
         uses: subosito/flutter-action@v2.16.0
         with:
           channel: stable
           flutter-version-file: pubspec.yaml # path to pubspec.yaml
       - run: flutter --version
 
-  # Job 3: Capture outputs from Flutter setup
+  # Job 4: Capture outputs from Flutter setup
   capture_outputs:
     runs-on: ubuntu-latest
     steps:
@@ -64,21 +100,3 @@ jobs:
           echo PUB-CACHE-PATH=${{ steps.flutter-action.outputs.PUB-CACHE-PATH }}
           echo PUB-CACHE-KEY=${{ steps.flutter-action.outputs.PUB-CACHE-KEY }}
         shell: bash
-  # Job 4: Build and Test Flutter Application
-  build_and_test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v4
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2.16.0
-        with:
-          flutter-version-file: pubspec.yaml
-      - run: flutter pub get
-        name: Install dependencies
-      - run: flutter test
-        name: Run tests
-      - run: flutter build apk
-        name: Build APK
-      - run: flutter build appbundle
-        name: Build App Bundle
