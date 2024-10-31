@@ -20,21 +20,34 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
 
+      - name: Run lint
+        run: ./gradlew lintDebug
+
+      - name: Upload Lint Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.html
+
+  # Job 2: Run Unit Tests for Flutter
+  run_unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2.16.0
         with:
           channel: stable
 
-      - name: Run Flutter Analyze
-        run: flutter analyze
+      - name: Install dependencies
+        run: flutter pub get
 
-      - name: Upload Lint Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-report
-          path: analysis_options.yaml
+      - name: Run Flutter Unit Tests
+        run: flutter test
 
-  # Job 2: Setup with caching options
+  # Job 3: Setup with caching options
   setup_with_caching:
     runs-on: ubuntu-latest
     steps:
@@ -51,7 +64,7 @@ jobs:
           pub-cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
       - run: flutter --version
 
-  # Job 3: Setup with flutter-version file specified
+  # Job 4: Setup with flutter-version file specified
   setup_with_version_file:
     runs-on: ubuntu-latest
     steps:
@@ -64,7 +77,7 @@ jobs:
           flutter-version-file: pubspec.yaml # path to pubspec.yaml
       - run: flutter --version
 
-  # Job 4: Capture outputs from Flutter setup
+  # Job 5: Capture outputs from Flutter setup
   capture_outputs:
     runs-on: ubuntu-latest
     steps:
@@ -85,21 +98,3 @@ jobs:
           echo PUB-CACHE-PATH=${{ steps.flutter-action.outputs.PUB-CACHE-PATH }}
           echo PUB-CACHE-KEY=${{ steps.flutter-action.outputs.PUB-CACHE-KEY }}
         shell: bash
-
-    # Job 5: Run Unit Tests for Flutter
-    run_unit_tests:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout the code
-          uses: actions/checkout@v4
-
-        - name: Set up Flutter
-          uses: subosito/flutter-action@v2.16.0
-          with:
-            channel: stable
-
-        - name: Install dependencies
-          run: flutter pub get
-
-        - name: Run Flutter Unit Tests
-          run: flutter test
