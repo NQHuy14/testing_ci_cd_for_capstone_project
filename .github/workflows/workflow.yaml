@@ -29,7 +29,7 @@ jobs:
         run: flutter analyze
 
       - name: Upload Lint Report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: lint-report
           path: analysis_options.yaml
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Run tests
         run: ./gradlew test
