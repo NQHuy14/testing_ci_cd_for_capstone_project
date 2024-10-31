@@ -111,7 +111,7 @@ jobs:
         shell: bash
 
 test_print_output:
-  runs-on: macos-latest
+  runs-on: windows-latest
 
   # These calls to setup.sh specify the -t flag, which enables test mode.
   # Test mode uses hardcoded Flutter release manifests from test/ directory.
