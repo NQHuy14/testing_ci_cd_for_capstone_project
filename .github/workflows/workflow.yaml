@@ -1,3 +1,104 @@
+#name: Flutter CI
+#
+#on:
+#  workflow_dispatch:
+#  push:
+#    branches:
+#      - main
+#      - develop
+#  pull_request:
+#    paths:
+#      - setup.sh
+#      - action.yaml
+#      - .github/workflows/workflow.yaml
+#
+#jobs:
+#  # Job 1: Android Lint Check
+#  flutter_analyze:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout the code
+#        uses: actions/checkout@v4
+#
+#      - name: Set up Flutter
+#        uses: subosito/flutter-action@v2.16.0
+#        with:
+#          channel: stable
+#
+#      - name: Run Flutter Analyzer
+#        run: flutter analyze
+#
+#  # Job 2: Run Unit Tests for Flutter
+#  run_unit_tests:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout the code
+#        uses: actions/checkout@v4
+#
+#      - name: Set up Flutter
+#        uses: subosito/flutter-action@v2.16.0
+#        with:
+#          channel: stable
+#
+#      - name: Install dependencies
+#        run: flutter pub get
+#
+#      - name: Run Flutter Unit Tests
+#        run: flutter test
+#
+#  # Job 3: Setup with caching options
+#  setup_with_caching:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Clone repository
+#        uses: actions/checkout@v4
+#      - name: Set up Flutter with caching
+#        uses: subosito/flutter-action@v2.16.0
+#        with:
+#          channel: stable
+#          cache: true
+#          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+#          cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
+#          pub-cache-key: "flutter-pub-:os:-:channel:-:version:-:arch:-:hash:"
+#          pub-cache-path: "${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:"
+#      - run: flutter --version
+#
+#  # Job 4: Setup with flutter-version file specified
+#  setup_with_version_file:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Clone repository
+#        uses: actions/checkout@v4
+#      - name: Set up Flutter with version from pubspec.yaml
+#        uses: subosito/flutter-action@v2.16.0
+#        with:
+#          channel: stable
+#          flutter-version-file: pubspec.yaml # path to pubspec.yaml
+#      - run: flutter --version
+#
+#  # Job 5: Capture outputs from Flutter setup
+#  capture_outputs:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Clone repository
+#        uses: actions/checkout@v4
+#      - name: Set up Flutter and capture outputs
+#        uses: subosito/flutter-action@v2.16.0
+#        id: flutter-action
+#        with:
+#          channel: stable
+#      - name: Print outputs
+#        run: |
+#          echo CACHE-PATH=${{ steps.flutter-action.outputs.CACHE-PATH }}
+#          echo CACHE-KEY=${{ steps.flutter-action.outputs.CACHE-KEY }}
+#          echo CHANNEL=${{ steps.flutter-action.outputs.CHANNEL }}
+#          echo VERSION=${{ steps.flutter-action.outputs.VERSION }}
+#          echo ARCHITECTURE=${{ steps.flutter-action.outputs.ARCHITECTURE }}
+#          echo PUB-CACHE-PATH=${{ steps.flutter-action.outputs.PUB-CACHE-PATH }}
+#          echo PUB-CACHE-KEY=${{ steps.flutter-action.outputs.PUB-CACHE-KEY }}
+#        shell: bash
+
+
 name: Flutter CI
 
 on:
@@ -97,3 +198,23 @@ jobs:
           echo PUB-CACHE-PATH=${{ steps.flutter-action.outputs.PUB-CACHE-PATH }}
           echo PUB-CACHE-KEY=${{ steps.flutter-action.outputs.PUB-CACHE-KEY }}
         shell: bash
+
+  # Job 6: Build APK and App Bundle
+  build_apk_appbundle:
+    runs-on: ubuntu-latest
+    needs: [flutter_analyze, run_unit_tests]
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2.16.0
+        with:
+          channel: stable
+          flutter-version-file: pubspec.yaml
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Build APK
+        run: flutter build apk --release
+      - name: Build App Bundle
+        run: flutter build appbundle --release
